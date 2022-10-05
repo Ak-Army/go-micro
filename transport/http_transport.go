@@ -163,9 +163,9 @@ func (h *httpTransportClient) Recv(m *Message) error {
 		h.Unlock()
 		return err
 	}
-	defer rsp.Body.Close()
 
 	b, err := ioutil.ReadAll(rsp.Body)
+	rsp.Body.Close()
 	h.Unlock()
 	if err != nil {
 		return err
