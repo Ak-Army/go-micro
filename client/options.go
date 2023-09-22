@@ -27,8 +27,9 @@ type Options struct {
 	Router Router
 
 	// Connection Pool
-	PoolSize int
-	PoolTTL  time.Duration
+	PoolSize         int
+	PoolTTL          time.Duration
+	PoolCloseTimeout time.Duration
 
 	// Response cache
 	Cache *Cache
@@ -111,13 +112,14 @@ func NewOptions(options ...Option) Options {
 			RequestTimeout: DefaultRequestTimeout,
 			DialTimeout:    transport.DefaultDialTimeout,
 		},
-		PoolSize:  DefaultPoolSize,
-		PoolTTL:   DefaultPoolTTL,
-		Broker:    broker.DefaultBroker,
-		Selector:  selector.DefaultSelector,
-		Registry:  registry.DefaultRegistry,
-		Transport: transport.DefaultTransport,
-		Logger:    logger.DefaultLogger,
+		PoolSize:         DefaultPoolSize,
+		PoolTTL:          DefaultPoolTTL,
+		PoolCloseTimeout: DefaultPoolCloseTimeout,
+		Broker:           broker.DefaultBroker,
+		Selector:         selector.DefaultSelector,
+		Registry:         registry.DefaultRegistry,
+		Transport:        transport.DefaultTransport,
+		Logger:           logger.DefaultLogger,
 	}
 
 	for _, o := range options {
@@ -159,6 +161,13 @@ func PoolSize(d int) Option {
 func PoolTTL(d time.Duration) Option {
 	return func(o *Options) {
 		o.PoolTTL = d
+	}
+}
+
+// PoolCloseTimeout sets the connection pool close timeout.
+func PoolCloseTimeout(d time.Duration) Option {
+	return func(o *Options) {
+		o.PoolCloseTimeout = d
 	}
 }
 

@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/codec"
 	raw "go-micro.dev/v4/codec/bytes"
 	"go-micro.dev/v4/errors"
+	log "go-micro.dev/v4/logger"
 	"go-micro.dev/v4/metadata"
 	"go-micro.dev/v4/registry"
 	"go-micro.dev/v4/selector"
@@ -33,6 +35,7 @@ func newRpcClient(opt ...Option) Client {
 	p := pool.NewPool(
 		pool.Size(opts.PoolSize),
 		pool.TTL(opts.PoolTTL),
+		pool.CloseTimeout(opts.PoolCloseTimeout),
 		pool.Transport(opts.Transport),
 	)
 
@@ -63,8 +66,15 @@ func (r *rpcClient) newCodec(contentType string) (codec.NewCodec, error) {
 	return nil, fmt.Errorf("unsupported Content-Type: %s", contentType)
 }
 
-func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, resp interface{}, opts CallOptions) error {
+func (r *rpcClient) call(
+	ctx context.Context,
+	node *registry.Node,
+	req Request,
+	resp interface{},
+	opts CallOptions,
+) error {
 	address := node.Address
+	logger := r.Options().Logger
 
 	msg := &transport.Message{
 		Header: make(map[string]string),
@@ -111,7 +121,10 @@ func (r *rpcClient) call(ctx context.Context, node *registry.Node, req Request, 
 
 	c, err := r.pool.Get(address, dOpts...)
 	if err != nil {
-		return errors.InternalServerError("go.micro.client", "connection error: %v", err)
+		if c == nil {
+			return errors.InternalServerError("go.micro.client", "connection error: %v", err)
+		}
+		logger.Log(log.ErrorLevel, "failed to close pool", err)
 	}
 
 	seq := atomic.AddUint64(&r.seq, 1) - 1
@@ -309,6 +322,7 @@ func (r *rpcClient) Init(opts ...Option) error {
 		r.pool = pool.NewPool(
 			pool.Size(r.opts.PoolSize),
 			pool.TTL(r.opts.PoolTTL),
+			pool.CloseTimeout(r.opts.PoolCloseTimeout),
 			pool.Transport(r.opts.Transport),
 		)
 	}
@@ -505,7 +519,10 @@ func (r *rpcClient) Stream(ctx context.Context, request Request, opts ...CallOpt
 			if err == selector.ErrNotFound {
 				return nil, errors.InternalServerError("go.micro.client", "service %s: %s", service, err.Error())
 			}
-			return nil, errors.InternalServerError("go.micro.client", "error getting next %s node: %s", service, err.Error())
+			return nil, errors.InternalServerError("go.micro.client",
+				"error getting next %s node: %s",
+				service,
+				err.Error())
 		}
 
 		stream, err := r.stream(ctx, node, request, callOpts)
