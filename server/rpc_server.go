@@ -206,6 +206,8 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 		// Check if its a last stream EOS error
 		if !ok && stream && msg.Header[headers.Error] == errLastStreamResponse.Error() {
 			pool.Release(psock)
+			closeConn = true
+
 			continue
 		}
 
@@ -512,7 +514,11 @@ func (s *rpcServer) Deregister() error {
 			logger.Logf(log.InfoLevel, "Unsubscribing %s from topic: %s", node.Id, sub.Topic())
 
 			if err := sub.Unsubscribe(); err != nil {
-				logger.Logf(log.ErrorLevel, "Failed to unsubscribe subscriber nr. %d from topic %s: %v", i+1, sub.Topic(), err)
+				logger.Logf(log.ErrorLevel,
+					"Failed to unsubscribe subscriber nr. %d from topic %s: %v",
+					i+1,
+					sub.Topic(),
+					err)
 			}
 		}
 
@@ -759,7 +765,11 @@ Loop:
 
 			rerr := s.opts.RegisterCheck(s.opts.Context)
 			if rerr != nil && registered {
-				logger.Logf(log.ErrorLevel, "Server %s-%s register check error: %s, deregister it", config.Name, config.Id, rerr)
+				logger.Logf(log.ErrorLevel,
+					"Server %s-%s register check error: %s, deregister it",
+					config.Name,
+					config.Id,
+					rerr)
 				// deregister self in case of error
 				if err := s.Deregister(); err != nil {
 					logger.Logf(log.ErrorLevel, "Server %s-%s deregister error: %s", config.Name, config.Id, err)
@@ -809,7 +819,11 @@ Loop:
 	s.setOptsAddr(addr)
 }
 
-func (s *rpcServer) serveReq(ctx context.Context, msg transport.Message, req *rpcRequest, resp *rpcResponse, rcodec codec.Codec) {
+func (s *rpcServer) serveReq(ctx context.Context,
+	msg transport.Message,
+	req *rpcRequest,
+	resp *rpcResponse,
+	rcodec codec.Codec) {
 	logger := s.opts.Logger
 	router := s.getRouter()
 
