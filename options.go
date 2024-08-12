@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v2"
-
 	"go-micro.dev/v4/auth"
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/cache"
@@ -43,7 +42,6 @@ type Options struct {
 	Transport transport.Transport
 	Logger    logger.Logger
 	Broker    broker.Broker
-	NewBroker broker.Broker
 	// Before and After funcs
 	BeforeStart []func() error
 	AfterStart  []func() error
@@ -86,16 +84,6 @@ func Broker(b broker.Broker) Option {
 		// Update Client and Server
 		o.Client.Init(client.Broker(b))
 		o.Server.Init(server.Broker(b))
-	}
-}
-
-// NewBroker to be used for service.
-func NewBroker(b broker.Broker) Option {
-	return func(o *Options) {
-		o.NewBroker = b
-		// Update Client and Server
-		o.Client.Init(client.NewBroker(b))
-		o.Server.Init(server.NewBroker(b))
 	}
 }
 
