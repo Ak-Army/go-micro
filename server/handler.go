@@ -18,6 +18,8 @@ type SubscriberOptions struct {
 	// with a nil error the message is acked.
 	AutoAck  bool
 	Internal bool
+
+	NewBroker bool
 }
 
 // EndpointMetadata is a Handler option that allows metadata to be added to
@@ -76,5 +78,12 @@ func SubscriberQueue(n string) SubscriberOption {
 func SubscriberContext(ctx context.Context) SubscriberOption {
 	return func(o *SubscriberOptions) {
 		o.Context = ctx
+	}
+}
+
+// SubscriberOldQueue options specifies that a subscriber is used with the old broker.
+func SubscriberNewBroker(b bool) SubscriberOption {
+	return func(o *SubscriberOptions) {
+		o.NewBroker = b
 	}
 }
