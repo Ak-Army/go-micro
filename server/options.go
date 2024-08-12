@@ -43,6 +43,7 @@ type Options struct {
 	Logger logger.Logger
 
 	Broker    broker.Broker
+	NewBroker broker.Broker
 	Registry  registry.Registry
 	Tracer    trace.Tracer
 	Transport transport.Transport
@@ -165,6 +166,13 @@ func Advertise(a string) Option {
 func Broker(b broker.Broker) Option {
 	return func(o *Options) {
 		o.Broker = b
+	}
+}
+
+// NewBroker to use for pub/sub.
+func NewBroker(b broker.Broker) Option {
+	return func(o *Options) {
+		o.NewBroker = b
 	}
 }
 

@@ -717,10 +717,19 @@ func (r *rpcClient) Publish(ctx context.Context, msg Message, opts ...PublishOpt
 		if err = r.opts.Broker.Connect(); err != nil {
 			return merrors.InternalServerError(packageID, err.Error())
 		}
-
+		if r.opts.NewBroker != nil {
+			if err = r.opts.NewBroker.Connect(); err != nil {
+				return merrors.InternalServerError(packageID, err.Error())
+			}
+		}
 		r.once.Store(true)
 	}
-
+	if options.NewBroker && r.opts.NewBroker != nil {
+		return r.opts.NewBroker.Publish(topic, &broker.Message{
+			Header: metadata,
+			Body:   body,
+		}, broker.PublishContext(options.Context))
+	}
 	return r.opts.Broker.Publish(topic, &broker.Message{
 		Header: metadata,
 		Body:   body,
