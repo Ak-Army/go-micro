@@ -46,8 +46,6 @@ type Options struct {
 
 	// Plugged interfaces
 	Broker broker.Broker
-	// Plugged interfaces
-	NewBroker broker.Broker
 
 	// Logger is the underline logger
 	Logger logger.Logger
@@ -115,9 +113,6 @@ type PublishOptions struct {
 	Context context.Context
 	// Exchange is the routing exchange for the message
 	Exchange string
-
-	// NewBroker is used to publish message with new broker
-	NewBroker bool
 }
 
 type MessageOptions struct {
@@ -169,13 +164,6 @@ func NewOptions(options ...Option) Options {
 func Broker(b broker.Broker) Option {
 	return func(o *Options) {
 		o.Broker = b
-	}
-}
-
-// NewBroker to be used for pub/sub.
-func NewBroker(b broker.Broker) Option {
-	return func(o *Options) {
-		o.NewBroker = b
 	}
 }
 
@@ -300,13 +288,6 @@ func DialTimeout(d time.Duration) Option {
 func WithExchange(e string) PublishOption {
 	return func(o *PublishOptions) {
 		o.Exchange = e
-	}
-}
-
-// WithNewBroker use old broker settings for publish
-func WithNewBroker(b bool) PublishOption {
-	return func(o *PublishOptions) {
-		o.NewBroker = b
 	}
 }
 

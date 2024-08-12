@@ -167,7 +167,7 @@ func (s *rpcServer) ServeConn(sock transport.Socket) {
 			// Process the event
 			ev := newEvent(msg)
 
-			if err := s.HandleEvent(ev.Topic())(ev); err != nil {
+			if err := s.HandleEvent(ev); err != nil {
 				msg.Header[headers.Error] = err.Error()
 				logger.Logf(log.ErrorLevel, "failed to handle event: %v", err)
 			}
@@ -551,12 +551,6 @@ func (s *rpcServer) Start() error {
 	if err = config.Broker.Connect(); err != nil {
 		logger.Logf(log.ErrorLevel, "Broker [%s] connect error: %v", brokerName, err)
 		return err
-	}
-	if config.NewBroker != nil {
-		if err = config.NewBroker.Connect(); err != nil {
-			logger.Logf(log.ErrorLevel, "Broker [%s] connect error: %v", brokerName, err)
-			return err
-		}
 	}
 
 	logger.Logf(log.InfoLevel, "Broker [%s] Connected to %s", brokerName, config.Broker.Address())
